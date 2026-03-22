@@ -10,8 +10,10 @@ export async function POST(request: NextRequest) {
   const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false, autoRefreshToken: false } }
+    { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
   )
+  // setSession ensures the JWT is used for ALL requests (including PostgREST/RLS)
+  await supabase.auth.setSession({ access_token: token, refresh_token: '' })
   const { data: { user } } = await supabase.auth.getUser(token)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
