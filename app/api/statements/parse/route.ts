@@ -60,8 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Step 2: Parse transactions (uses a placeholder statement ID for now) ──
-    // PDF files use pdf parser; everything else (csv/txt/xls/xlsx) uses csv parser
-    const parserFileType = ext === 'pdf' ? 'pdf' : 'csv'
+    const parserFileType = ext === 'pdf' ? 'pdf' : ext === 'txt' ? 'txt' : 'csv'
     const enriched = parseStatement(textContent, bank, parserFileType, 'temp', user.id)
 
     if (enriched.length === 0) {

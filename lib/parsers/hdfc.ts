@@ -83,6 +83,117 @@ export function parseHdfcPdf(text: string): ParsedTransaction[] {
   return transactions
 }
 
+/**
+ * HDFC Bank fixed-width TXT parser.
+ * Format: multi-page statement with column positions determined by separator line.
+ * Separator: "--------  ----...  ----..."
+ * Columns: Date | Narration | Chq./Ref.No. | Value Dt | Withdrawal Amt. | Deposit Amt. | Closing Balance
+ * Narrations can span multiple continuation lines (leading spaces).
+ */
+export function parseHdfcTxt(text: string): ParsedTransaction[] {
+  const transactions: ParsedTransaction[] = []
+  const lines = text.split('\n')
+
+  // Detect column positions from the first separator line
+  // e.g. "--------  ----------------------------------------  ..."
+  type Col = { start: number; end: number }
+  function parseSepLine(line: string): Col[] {
+    const cols: Col[] = []
+    let inDash = false
+    let start = 0
+    for (let i = 0; i <= line.length; i++) {
+      const c = i < line.length ? line[i] : ' '
+      if (!inDash && c === '-') { inDash = true; start = i }
+      else if (inDash && c !== '-') { cols.push({ start, end: i }); inDash = false }
+    }
+    return cols
+  }
+
+  let cols: Col[] = []
+  for (const line of lines) {
+    if (/^-{4,}\s+-{4,}/.test(line)) {
+      cols = parseSepLine(line)
+      break
+    }
+  }
+  if (cols.length < 7) return []
+
+  // col indices: 0=date, 1=narration, 2=ref, 3=valuedt, 4=withdrawal, 5=deposit, 6=balance
+  const [datCol, narCol, , , wdrCol, depCol, balCol] = cols
+
+  function col(line: string, c: Col, toEnd = false): string {
+    if (line.length <= c.start) return ''
+    return toEnd
+      ? line.substring(c.start).trim()
+      : line.substring(c.start, c.end).trim()
+  }
+
+  // State machine: skip page header sections, process data lines
+  // Page structure: metadata → sep1 → header-row → sep2 → data → **Continue**
+  let state: 'header' | 'data' = 'header'
+  let sepsSeen = 0
+
+  interface TxBuf { date: string; narration: string; withdrawal: string; deposit: string; balance: string }
+  let buf: TxBuf | null = null
+
+  function flush() {
+    if (!buf) return
+    const dateStr = parseDate(buf.date)
+    if (dateStr && buf.narration) {
+      transactions.push({
+        date: dateStr,
+        description: buf.narration,
+        debit: parseAmount(buf.withdrawal),
+        credit: parseAmount(buf.deposit),
+        balance: parseAmount(buf.balance),
+      })
+    }
+    buf = null
+  }
+
+  for (const line of lines) {
+    // Page-break marker → re-enter header mode
+    if (/\*\*Continue\*\*/i.test(line)) {
+      flush()
+      state = 'header'
+      sepsSeen = 0
+      continue
+    }
+
+    // Separator line
+    if (/^-{4,}/.test(line.trim())) {
+      sepsSeen++
+      // After the 2nd separator per page, data begins
+      if (sepsSeen % 2 === 0) state = 'data'
+      continue
+    }
+
+    if (state !== 'data') continue
+    if (!line.trim()) continue
+
+    const dateCell = col(line, datCol)
+
+    if (/^\d{2}\/\d{2}\/\d{2,4}$/.test(dateCell)) {
+      // New transaction line
+      flush()
+      buf = {
+        date: dateCell,
+        narration: col(line, narCol),
+        withdrawal: col(line, wdrCol),
+        deposit: col(line, depCol),
+        balance: col(line, balCol, true),
+      }
+    } else if (buf && dateCell === '') {
+      // Continuation line — append narration fragment
+      const extra = col(line, narCol)
+      if (extra) buf.narration = (buf.narration + ' ' + extra).trim()
+    }
+  }
+  flush()
+
+  return transactions
+}
+
 export function enrichWithMeta(
   transactions: ParsedTransaction[],
   statementId: string,

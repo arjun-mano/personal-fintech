@@ -1,5 +1,5 @@
 import type { Bank, ParsedTransaction } from '@/types'
-import { parseHdfcCsv, parseHdfcPdf, enrichWithMeta as hdfcEnrich } from './hdfc'
+import { parseHdfcCsv, parseHdfcPdf, parseHdfcTxt, enrichWithMeta as hdfcEnrich } from './hdfc'
 import { parseSbiCsv, enrichWithMeta as sbiEnrich } from './sbi'
 import { parseIciciCsv, enrichWithMeta as iciciEnrich } from './icici'
 import { parseAxisCsv, enrichWithMeta as axisEnrich } from './axis'
@@ -17,7 +17,7 @@ export type EnrichedTransaction = ParsedTransaction & {
 export function parseStatement(
   content: string,
   bank: Bank,
-  fileType: 'csv' | 'pdf',
+  fileType: 'csv' | 'pdf' | 'txt',
   statementId: string,
   userId: string
 ): EnrichedTransaction[] {
@@ -25,7 +25,9 @@ export function parseStatement(
 
   switch (bank) {
     case 'HDFC':
-      raw = fileType === 'csv' ? parseHdfcCsv(content) : parseHdfcPdf(content)
+      if (fileType === 'pdf') raw = parseHdfcPdf(content)
+      else if (fileType === 'txt') raw = parseHdfcTxt(content)
+      else raw = parseHdfcCsv(content)
       return hdfcEnrich(raw, statementId, userId)
     case 'SBI':
       raw = parseSbiCsv(content)
