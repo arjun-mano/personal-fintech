@@ -68,57 +68,36 @@ export function Sidebar() {
     }}>
       {/* Logo */}
       <div style={{
-        padding: '24px 20px 20px',
+        padding: '20px 16px 18px',
         borderBottom: '1px solid var(--border)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <div style={{
-            width: '28px',
-            height: '28px',
+            width: '26px',
+            height: '26px',
             background: 'var(--gold-dim)',
-            border: '1px solid rgba(201,148,63,0.3)',
             borderRadius: '6px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontFamily: 'var(--font-display)',
-            fontSize: '14px',
+            fontSize: '13px',
             color: 'var(--gold)',
-            fontStyle: 'italic',
           }}>₹</div>
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-body)',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: 'var(--foreground)',
-              letterSpacing: '0.02em',
-            }}>Finance</div>
-            <div style={{
-              fontFamily: 'var(--font-mono-custom)',
-              fontSize: '10px',
-              color: 'var(--muted-foreground)',
-              letterSpacing: '0.08em',
-            }}>PERSONAL</div>
-          </div>
+          <span style={{
+            fontSize: '13px',
+            fontWeight: 600,
+            color: 'var(--foreground)',
+          }}>Finance</span>
         </div>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '16px 10px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-        <div style={{
-          fontFamily: 'var(--font-mono-custom)',
-          fontSize: '9px',
-          letterSpacing: '0.15em',
-          color: 'var(--muted-foreground)',
-          padding: '0 10px 8px',
-          marginTop: '4px',
-        }}>NAVIGATION</div>
+      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
         {links.map(({ href, label, icon }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (
             <Link key={href} href={href} className={active ? 'nav-item active' : 'nav-item'}>
-              <span style={{ color: active ? 'var(--gold)' : 'inherit', opacity: active ? 1 : 0.6 }}>{icon}</span>
+              <span style={{ color: active ? 'var(--gold)' : 'inherit', opacity: active ? 1 : 0.5 }}>{icon}</span>
               <span>{label}</span>
             </Link>
           )

@@ -61,7 +61,7 @@ function fmtShort(n: number) {
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) => {
   if (!active || !payload?.length) return null
   return (
-    <div style={{ background: 'var(--surface-3)', border: '1px solid var(--border-bright)', borderRadius: '8px', padding: '10px 14px', fontFamily: 'var(--font-mono-custom)', fontSize: '12px' }}>
+    <div style={{ background: 'var(--surface-3)', border: '1px solid var(--border-bright)', borderRadius: '8px', padding: '10px 14px', fontSize: '12px', fontVariantNumeric: 'tabular-nums' }}>
       <div style={{ color: 'var(--muted-foreground)', marginBottom: 6 }}>{label}</div>
       {payload.map((p, i) => (
         <div key={i} style={{ color: p.name === 'income' ? 'var(--emerald)' : 'var(--gold)', display: 'flex', justifyContent: 'space-between', gap: 16 }}>
@@ -77,28 +77,24 @@ export default function DemoPage() {
   const [activeNav] = useState('Overview')
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface-0)', fontFamily: 'var(--font-body)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface-0)' }}>
       {/* ── Sidebar ── */}
-      <aside style={{ width: '220px', minWidth: '220px', background: 'var(--sidebar)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0 }}>
+      <aside style={{ width: '210px', minWidth: '210px', background: 'var(--sidebar)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0 }}>
         {/* Logo */}
-        <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '28px', height: '28px', background: 'var(--gold-dim)', border: '1px solid rgba(201,148,63,0.3)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '14px', color: 'var(--gold)', fontStyle: 'italic' }}>₹</div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 600, color: 'var(--foreground)', letterSpacing: '0.02em' }}>Finance</div>
-              <div style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '10px', color: 'var(--muted-foreground)', letterSpacing: '0.08em' }}>PERSONAL</div>
-            </div>
+        <div style={{ padding: '20px 16px 18px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+            <div style={{ width: '26px', height: '26px', background: 'var(--gold-dim)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: 'var(--gold)' }}>₹</div>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--foreground)' }}>Finance</span>
           </div>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '16px 10px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '9px', letterSpacing: '0.15em', color: 'var(--muted-foreground)', padding: '0 10px 8px', marginTop: '4px' }}>NAVIGATION</div>
+        <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
           {navLinks.map(({ href, label, icon }) => {
             const isActive = label === activeNav
             return (
               <a key={label} href={href} className={isActive ? 'nav-item active' : 'nav-item'}>
-                <span style={{ color: isActive ? 'var(--gold)' : 'inherit', opacity: isActive ? 1 : 0.55, fontSize: '14px' }}>{icon}</span>
+                <span style={{ color: isActive ? 'var(--gold)' : 'inherit', opacity: isActive ? 1 : 0.5 }}>{icon}</span>
                 <span>{label}</span>
               </a>
             )
@@ -106,9 +102,9 @@ export default function DemoPage() {
         </nav>
 
         {/* Sign out */}
-        <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', borderRadius: '8px', color: 'var(--muted-foreground)', fontSize: '13px', cursor: 'pointer' }}>
-            <span style={{ opacity: 0.5 }}>→</span>
+        <div style={{ padding: '10px 8px', borderTop: '1px solid var(--border)' }}>
+          <div className="nav-item" style={{ cursor: 'default' }}>
+            <span style={{ opacity: 0.4 }}>→</span>
             <span>Sign Out</span>
           </div>
         </div>
