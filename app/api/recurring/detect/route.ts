@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { detectRecurring } from '@/lib/recurring-detector'
 import type { Transaction } from '@/types'
 
 export async function POST() {
-  const supabase = await createClient()
+  const token = request.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${token}` } }, cookies: { getAll: () => [], setAll: () => {} } }
+  )
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
