@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatMonth, currentMonth, prevMonths } from '@/lib/utils'
 import { CATEGORY_LABELS } from '@/lib/categorizer'
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
+  AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid
 } from 'recharts'
 import type { Transaction, ClaudeSession } from '@/types'
@@ -37,24 +37,24 @@ function useCountUp(target: number, duration = 800) {
   return value
 }
 
-const PIE_COLORS = ['#C9943F', '#2BA86A', '#D94F4F', '#3D7EC8', '#8B6FD4', '#E07A40', '#4AB8A0', '#9B6B6B']
+const PIE_COLORS = ['#4318FF', '#39B8FF', '#01B574', '#FFB547', '#E31A1A', '#868CFF']
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) => {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: 'var(--surface-3)',
-      border: '1px solid var(--border-bright)',
-      borderRadius: '8px',
+      background: 'rgba(10,14,50,0.95)',
+      border: '1px solid rgba(255,255,255,0.12)',
+      borderRadius: '10px',
       padding: '10px 14px',
-      fontFamily: 'var(--font-mono-custom)',
       fontSize: '12px',
+      backdropFilter: 'blur(12px)',
     }}>
-      <div style={{ color: 'var(--muted-foreground)', marginBottom: 6, letterSpacing: '0.05em' }}>{label}</div>
+      <div style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 6, letterSpacing: '0.04em', fontSize: '11px' }}>{label}</div>
       {payload.map((p, i) => (
-        <div key={i} style={{ color: p.name === 'income' ? 'var(--emerald)' : 'var(--gold)', display: 'flex', justifyContent: 'space-between', gap: 16 }}>
-          <span style={{ textTransform: 'capitalize' }}>{p.name}</span>
-          <span>{formatINRShort(p.value)}</span>
+        <div key={i} style={{ color: p.name === 'income' ? '#01B574' : '#FFB547', display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+          <span style={{ textTransform: 'capitalize', color: 'rgba(255,255,255,0.6)' }}>{p.name}</span>
+          <span style={{ fontWeight: 600 }}>{formatINRShort(p.value)}</span>
         </div>
       ))}
     </div>
@@ -125,368 +125,460 @@ export default function DashboardPage() {
   const analysis = latestAnalysis?.parsed_analysis
 
   return (
-    <div className="noise-overlay" style={{ minHeight: '100vh', background: 'var(--surface-0)' }}>
-      {/* Top header */}
-      <header style={{
-        padding: '20px 32px',
-        borderBottom: '1px solid var(--border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: 'var(--surface-1)',
-        backdropFilter: 'blur(12px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 40,
-      }}>
-        <div>
-          <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', color: 'var(--foreground)', letterSpacing: '-0.01em' }}>
-            {formatMonth(month)}
-          </div>
-          <div style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: 'var(--muted-foreground)', marginTop: '2px', letterSpacing: '0.05em' }}>
-            FINANCIAL OVERVIEW
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {savingsRate !== 0 && (
-            <span className={`pill ${savingsRate > 0 ? 'pill-emerald' : 'pill-rose'}`}>
-              {savingsRate > 0 ? '↑' : '↓'} {Math.abs(savingsRate)}% savings rate
-            </span>
-          )}
-          <select
-            value={month}
-            onChange={e => setMonth(e.target.value)}
-            style={{
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              color: 'var(--foreground)',
-              borderRadius: '8px',
-              padding: '6px 12px',
-              fontFamily: 'var(--font-mono-custom)',
-              fontSize: '12px',
-              outline: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            {months.map(m => (
-              <option key={m} value={m}>{formatMonth(m)}</option>
-            ))}
-          </select>
-          <a href="/claude" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '7px 14px',
-            background: 'var(--gold-dim)',
-            border: '1px solid rgba(201,148,63,0.3)',
-            borderRadius: '8px',
-            color: 'var(--gold-light)',
-            fontFamily: 'var(--font-mono-custom)',
-            fontSize: '11px',
-            fontWeight: 600,
-            letterSpacing: '0.06em',
-            textDecoration: 'none',
-            cursor: 'pointer',
-            transition: 'all 0.15s',
-          }}>
-            ✦ AI ANALYSIS
-          </a>
-        </div>
-      </header>
+    <>
+      <style>{`
+        .dash-page { min-height: 100vh; background: var(--surface-0); }
 
-      {loading ? (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'var(--muted-foreground)', fontFamily: 'var(--font-mono-custom)', fontSize: '12px', letterSpacing: '0.1em' }}>
-          LOADING DATA...
-        </div>
-      ) : (
-        <div style={{ padding: '28px 32px', maxWidth: '1400px' }}>
+        /* Header */
+        .dash-header {
+          padding: 18px 28px;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          background: rgba(6,11,38,0.85);
+          backdrop-filter: blur(20px);
+          position: sticky;
+          top: 0;
+          z-index: 30;
+        }
+        .dash-header-left { min-width: 0; }
+        .dash-header-month {
+          font-size: 22px;
+          font-weight: 700;
+          color: #fff;
+          white-space: nowrap;
+          letter-spacing: -0.02em;
+        }
+        .dash-header-sub {
+          font-size: 10px;
+          color: rgba(255,255,255,0.35);
+          letter-spacing: 0.1em;
+          margin-top: 2px;
+        }
+        .dash-header-right {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-shrink: 0;
+        }
+        .dash-select {
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.8);
+          border-radius: 8px;
+          padding: 6px 10px;
+          font-size: 12px;
+          outline: none;
+          cursor: pointer;
+          max-width: 130px;
+        }
+        .dash-ai-btn {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 7px 12px;
+          background: rgba(67,24,255,0.15);
+          border: 1px solid rgba(67,24,255,0.3);
+          border-radius: 8px;
+          color: #868cff;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          text-decoration: none;
+          white-space: nowrap;
+        }
 
-          {/* ── Stat Cards Row ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-            <StatCard
-              label="TOTAL INCOME"
-              value={incomeCount}
-              variant="emerald"
-              trend="+2.4%"
-              trendUp
-              delay="delay-1"
-              transactions={transactions.filter(t => t.credit).length}
-            />
-            <StatCard
-              label="TOTAL SPENT"
-              value={spentCount}
-              variant="rose"
-              trend="-1.2%"
-              trendUp={false}
-              delay="delay-2"
-              transactions={transactions.filter(t => t.debit).length}
-            />
-            <StatCard
-              label="NET SAVINGS"
-              value={savingsCount}
-              variant="gold"
-              prefix={netSavings < 0 ? '-' : '+'}
-              delay="delay-3"
-              transactions={transactions.length}
-            />
+        /* Content */
+        .dash-content { padding: 20px 28px; max-width: 1400px; }
+
+        /* Stat grid — 3 cols desktop */
+        .dash-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+
+        /* Charts — side by side desktop */
+        .dash-charts { display: grid; grid-template-columns: 1fr 360px; gap: 14px; margin-bottom: 20px; }
+
+        /* Bottom — side by side desktop */
+        .dash-bottom { display: grid; grid-template-columns: 1fr 300px; gap: 14px; }
+
+        /* Cards */
+        .vcard {
+          background: linear-gradient(127.09deg, rgba(6,11,40,0.9) 19.41%, rgba(10,14,35,0.6) 76.65%);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 16px;
+          overflow: hidden;
+        }
+        .vcard-head {
+          padding: 16px 18px 0;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .vcard-title {
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          color: rgba(255,255,255,0.4);
+        }
+        .vcard-body { padding: 12px 18px 18px; }
+
+        /* Stat card */
+        .scard {
+          border-radius: 16px;
+          border: 1px solid rgba(255,255,255,0.08);
+          padding: 18px;
+          position: relative;
+          overflow: hidden;
+        }
+        .scard-label {
+          font-size: 10px;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          color: rgba(255,255,255,0.35);
+          margin-bottom: 14px;
+        }
+        .scard-value {
+          font-size: 28px;
+          font-weight: 700;
+          line-height: 1;
+          margin-bottom: 16px;
+          font-variant-numeric: tabular-nums;
+        }
+        .scard-currency {
+          font-size: 13px;
+          color: rgba(255,255,255,0.4);
+          margin-right: 1px;
+          vertical-align: top;
+          line-height: 1.8;
+        }
+        .scard-footer {
+          font-size: 11px;
+          color: rgba(255,255,255,0.3);
+        }
+        .scard-bar {
+          height: 3px;
+          background: rgba(255,255,255,0.06);
+          border-radius: 3px;
+          margin-bottom: 10px;
+          overflow: hidden;
+        }
+        .scard-badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 2px 8px;
+          border-radius: 100px;
+          font-size: 10px;
+          font-weight: 600;
+          margin-bottom: 14px;
+          float: right;
+          margin-top: -24px;
+        }
+
+        /* Breakpoints */
+        @media (max-width: 1024px) {
+          .dash-charts { grid-template-columns: 1fr; }
+          .dash-bottom { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+          .dash-header { padding: 12px 16px; top: 56px; }
+          .dash-header-month { font-size: 18px; }
+          .dash-header-sub { display: none; }
+          .dash-content { padding: 14px 14px; }
+          .dash-stats { grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+          .dash-charts { grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+          .dash-bottom { grid-template-columns: 1fr; gap: 10px; }
+          .scard-value { font-size: 24px; }
+          .dash-select { font-size: 11px; padding: 5px 8px; }
+        }
+        @media (max-width: 400px) {
+          .dash-ai-btn span.ai-label { display: none; }
+        }
+      `}</style>
+
+      <div className="dash-page">
+        {/* Header */}
+        <header className="dash-header">
+          <div className="dash-header-left">
+            <div className="dash-header-month">{formatMonth(month)}</div>
+            <div className="dash-header-sub">FINANCIAL OVERVIEW</div>
           </div>
+          <div className="dash-header-right">
+            {savingsRate !== 0 && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center',
+                padding: '3px 9px', borderRadius: '100px', fontSize: '10px', fontWeight: 600,
+                background: savingsRate > 0 ? 'rgba(1,181,116,0.12)' : 'rgba(227,26,26,0.12)',
+                color: savingsRate > 0 ? '#01B574' : '#E31A1A',
+                whiteSpace: 'nowrap',
+              }}>
+                {savingsRate > 0 ? '↑' : '↓'} {Math.abs(savingsRate)}%
+              </span>
+            )}
+            <select
+              value={month}
+              onChange={e => setMonth(e.target.value)}
+              className="dash-select"
+            >
+              {months.map(m => (
+                <option key={m} value={m}>{formatMonth(m)}</option>
+              ))}
+            </select>
+            <a href="/claude" className="dash-ai-btn">
+              ✦ <span className="ai-label">AI ANALYSIS</span>
+            </a>
+          </div>
+        </header>
 
-          {/* ── Charts Row ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '16px', marginBottom: '24px' }}>
-            {/* Area chart — 6 month trend */}
-            <div className="pcard animate-in delay-4">
-              <div className="pcard-header">
-                <div className="pcard-title">6-MONTH TREND</div>
-                <div style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '10px', color: 'var(--muted-foreground)' }}>
-                  {months[months.length - 1]} → {months[0]}
+        {loading ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', color: 'rgba(255,255,255,0.25)', fontSize: '12px', letterSpacing: '0.1em' }}>
+            LOADING...
+          </div>
+        ) : (
+          <div className="dash-content">
+
+            {/* ── Stat Cards ── */}
+            <div className="dash-stats">
+              <StatCard
+                label="TOTAL INCOME"
+                value={incomeCount}
+                color="#01B574"
+                bg="rgba(1,181,116,0.08)"
+                border="rgba(1,181,116,0.15)"
+                trend={savingsRate > 0 ? `+${savingsRate}% saved` : undefined}
+                trendUp
+                sub={`${transactions.filter(t => t.credit).length} credits`}
+              />
+              <StatCard
+                label="TOTAL SPENT"
+                value={spentCount}
+                color="#E31A1A"
+                bg="rgba(227,26,26,0.07)"
+                border="rgba(227,26,26,0.14)"
+                sub={`${transactions.filter(t => t.debit).length} debits`}
+              />
+              <StatCard
+                label="NET SAVINGS"
+                value={savingsCount}
+                color="#FFB547"
+                bg="rgba(255,181,71,0.07)"
+                border="rgba(255,181,71,0.14)"
+                prefix={netSavings < 0 ? '-' : '+'}
+                sub={`${transactions.length} total txns`}
+              />
+            </div>
+
+            {/* ── Charts ── */}
+            <div className="dash-charts">
+              {/* Trend chart */}
+              <div className="vcard">
+                <div className="vcard-head">
+                  <span className="vcard-title">6-MONTH TREND</span>
+                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>{months[months.length - 1]} → {months[0]}</span>
                 </div>
-              </div>
-              <div className="pcard-body" style={{ paddingTop: '8px' }}>
-                <ResponsiveContainer width="100%" height={180}>
-                  <AreaChart data={trendData} margin={{ top: 5, right: 0, bottom: 0, left: 0 }}>
-                    <defs>
-                      <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2BA86A" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#2BA86A" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="spentGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#C9943F" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#C9943F" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="none" stroke="rgba(255,255,255,0.03)" />
-                    <XAxis dataKey="month" tick={{ fill: '#5A6070', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#5A6070', fontSize: 10, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} width={48} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="income" stroke="#2BA86A" strokeWidth={1.5} fill="url(#incomeGrad)" dot={false} />
-                    <Area type="monotone" dataKey="spent" stroke="#C9943F" strokeWidth={1.5} fill="url(#spentGrad)" dot={false} />
-                  </AreaChart>
-                </ResponsiveContainer>
-                <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
-                  {[{ label: 'Income', color: '#2BA86A' }, { label: 'Spent', color: '#C9943F' }].map(l => (
-                    <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'var(--font-mono-custom)', fontSize: '10px', color: 'var(--muted-foreground)' }}>
-                      <div style={{ width: '16px', height: '2px', background: l.color, borderRadius: '2px' }}/>
-                      {l.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Pie chart — category breakdown */}
-            <div className="pcard animate-in delay-4">
-              <div className="pcard-header">
-                <div className="pcard-title">SPENDING BREAKDOWN</div>
-              </div>
-              <div className="pcard-body" style={{ paddingTop: '8px' }}>
-                {pieData.length === 0 ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '180px', color: 'var(--muted-foreground)', fontFamily: 'var(--font-mono-custom)', fontSize: '11px' }}>
-                    No spending data
-                  </div>
-                ) : (
-                  <>
-                    <ResponsiveContainer width="100%" height={140}>
-                      <PieChart>
-                        <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={62} paddingAngle={2} strokeWidth={0}>
-                          {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                        </Pie>
-                        <Tooltip formatter={(v) => formatINR(Number(v))} contentStyle={{ background: 'var(--surface-3)', border: '1px solid var(--border-bright)', borderRadius: '8px', fontFamily: 'var(--font-mono-custom)', fontSize: '12px' }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {pieData.slice(0, 4).map((d, i) => (
-                        <div key={d.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0 }}/>
-                            <span style={{ fontFamily: 'var(--font-body)', fontSize: '11px', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>{d.name}</span>
-                          </div>
-                          <span style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: 'var(--foreground)' }}>{formatINRShort(d.value)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ── Bottom Row ── */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '16px' }}>
-            {/* AI Analysis card */}
-            <div className="pcard animate-in delay-5">
-              <div className="pcard-header">
-                <div className="pcard-title">AI ANALYSIS</div>
-                {analysis && (
-                  <span className={`pill ${analysis.savings_score >= 7 ? 'pill-emerald' : analysis.savings_score >= 4 ? 'pill-gold' : 'pill-rose'}`}>
-                    {analysis.savings_score}/10 score
-                  </span>
-                )}
-              </div>
-              <div className="pcard-body">
-                {!analysis ? (
-                  <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontSize: '28px', color: 'var(--muted-foreground)', fontStyle: 'italic', marginBottom: '12px' }}>No analysis yet</div>
-                    <p style={{ color: 'var(--muted-foreground)', fontSize: '13px', marginBottom: '20px' }}>Generate a prompt, paste into Claude.ai, and view your personalized financial insights.</p>
-                    <a href="/claude" style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '8px',
-                      padding: '10px 20px', background: 'var(--gold-dim)', border: '1px solid rgba(201,148,63,0.25)',
-                      borderRadius: '8px', color: 'var(--gold-light)', fontFamily: 'var(--font-mono-custom)',
-                      fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textDecoration: 'none',
-                    }}>✦ GENERATE ANALYSIS</a>
-                  </div>
-                ) : (
-                  <div>
-                    {/* Score bar */}
-                    <div style={{ marginBottom: '20px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: 'var(--muted-foreground)' }}>SAVINGS SCORE</span>
-                        <span style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: analysis.savings_score >= 7 ? 'var(--emerald)' : 'var(--gold)' }}>{analysis.savings_score}/10</span>
-                      </div>
-                      <div style={{ height: '4px', background: 'var(--surface-3)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{
-                          height: '100%',
-                          width: `${analysis.savings_score * 10}%`,
-                          background: analysis.savings_score >= 7 ? 'var(--emerald)' : analysis.savings_score >= 4 ? 'var(--gold)' : 'var(--rose)',
-                          borderRadius: '4px',
-                          transition: 'width 1s cubic-bezier(0.16, 1, 0.3, 1)',
-                        }}/>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: '13px', color: 'var(--foreground)', lineHeight: 1.65, marginBottom: '20px', opacity: 0.85 }}>{analysis.summary}</p>
-                    {/* Suggestions */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {analysis.suggestions.slice(0, 3).map((s, i) => (
-                        <div key={i} style={{
-                          display: 'flex', alignItems: 'flex-start', gap: '12px',
-                          padding: '12px 14px', background: 'var(--surface-2)',
-                          borderRadius: '8px', border: '1px solid var(--border)',
-                        }}>
-                          <div style={{
-                            width: '22px', height: '22px', borderRadius: '50%',
-                            background: 'var(--gold-dim)', border: '1px solid rgba(201,148,63,0.25)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontFamily: 'var(--font-mono-custom)', fontSize: '10px', color: 'var(--gold)',
-                            flexShrink: 0,
-                          }}>{i + 1}</div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--foreground)', marginBottom: '2px' }}>{s.title}</div>
-                            {s.estimated_saving && (
-                              <span className="pill pill-emerald" style={{ fontSize: '10px', padding: '2px 8px' }}>Save {s.estimated_saving}/mo</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <a href="/claude" style={{ display: 'inline-block', marginTop: '16px', fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: 'var(--gold)', textDecoration: 'none', letterSpacing: '0.05em' }}>
-                      VIEW FULL ANALYSIS →
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Recent transactions */}
-            <div className="pcard animate-in delay-6">
-              <div className="pcard-header">
-                <div className="pcard-title">RECENT</div>
-                <a href="/transactions" style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '10px', color: 'var(--muted-foreground)', textDecoration: 'none', letterSpacing: '0.05em' }}>ALL →</a>
-              </div>
-              <div className="pcard-body" style={{ paddingTop: '12px' }}>
-                {recentTx.length === 0 ? (
-                  <div style={{ color: 'var(--muted-foreground)', fontSize: '12px', textAlign: 'center', padding: '24px 0', fontFamily: 'var(--font-mono-custom)' }}>
-                    No transactions
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    {recentTx.map((t, i) => (
-                      <div key={t.id} style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '9px 0',
-                        borderBottom: i < recentTx.length - 1 ? '1px solid var(--border)' : 'none',
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-                          <div style={{
-                            width: '28px', height: '28px', borderRadius: '8px',
-                            background: 'var(--surface-3)', border: '1px solid var(--border)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '12px', flexShrink: 0,
-                          }}>
-                            {getCategoryIcon(t.category)}
-                          </div>
-                          <div>
-                            <div style={{ fontSize: '12px', color: 'var(--foreground)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '150px' }}>
-                              {t.merchant_clean || t.description}
-                            </div>
-                            <div style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '10px', color: 'var(--muted-foreground)', marginTop: '1px' }}>
-                              {t.date.slice(5)}
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '12px', color: t.debit ? 'var(--rose)' : 'var(--emerald)', flexShrink: 0, marginLeft: '8px' }}>
-                          {t.debit ? `-${formatINRShort(t.debit)}` : `+${formatINRShort(t.credit ?? 0)}`}
-                        </div>
+                <div className="vcard-body">
+                  <ResponsiveContainer width="100%" height={180}>
+                    <AreaChart data={trendData} margin={{ top: 5, right: 4, bottom: 0, left: 0 }}>
+                      <defs>
+                        <linearGradient id="iGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#01B574" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#01B574" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="sGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#FFB547" stopOpacity={0.18}/>
+                          <stop offset="95%" stopColor="#FFB547" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="none" stroke="rgba(255,255,255,0.03)" />
+                      <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${(v/1000).toFixed(0)}k`} width={44} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="income" stroke="#01B574" strokeWidth={1.5} fill="url(#iGrad)" dot={false} />
+                      <Area type="monotone" dataKey="spent" stroke="#FFB547" strokeWidth={1.5} fill="url(#sGrad)" dot={false} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
+                    {[{ label: 'Income', color: '#01B574' }, { label: 'Spent', color: '#FFB547' }].map(l => (
+                      <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: 'rgba(255,255,255,0.35)' }}>
+                        <div style={{ width: '16px', height: '2px', background: l.color, borderRadius: '2px' }}/>
+                        {l.label}
                       </div>
                     ))}
                   </div>
-                )}
-                {transactions.length === 0 && (
-                  <div style={{ textAlign: 'center', marginTop: '8px' }}>
-                    <a href="/upload" style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: 'var(--gold)', textDecoration: 'none', letterSpacing: '0.05em' }}>
-                      IMPORT STATEMENT →
-                    </a>
-                  </div>
-                )}
+                </div>
+              </div>
+
+              {/* Pie chart */}
+              <div className="vcard">
+                <div className="vcard-head">
+                  <span className="vcard-title">SPENDING BREAKDOWN</span>
+                </div>
+                <div className="vcard-body">
+                  {pieData.length === 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '160px', color: 'rgba(255,255,255,0.2)', fontSize: '12px' }}>
+                      No spending data
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                      <ResponsiveContainer width={130} height={130}>
+                        <PieChart>
+                          <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={38} outerRadius={60} paddingAngle={2} strokeWidth={0}>
+                            {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                          </Pie>
+                          <Tooltip formatter={(v) => formatINR(Number(v))} contentStyle={{ background: 'rgba(10,14,50,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '12px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div style={{ flex: 1, minWidth: '120px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {pieData.slice(0, 5).map((d, i) => (
+                          <div key={d.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', overflow: 'hidden' }}>
+                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: PIE_COLORS[i % PIE_COLORS.length], flexShrink: 0 }}/>
+                              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</span>
+                            </div>
+                            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.8)', flexShrink: 0, fontWeight: 600 }}>{formatINRShort(d.value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* ── Bottom Row ── */}
+            <div className="dash-bottom">
+              {/* AI Analysis */}
+              <div className="vcard">
+                <div className="vcard-head">
+                  <span className="vcard-title">AI ANALYSIS</span>
+                  {analysis && (
+                    <span style={{
+                      padding: '3px 9px', borderRadius: '100px', fontSize: '10px', fontWeight: 600,
+                      background: analysis.savings_score >= 7 ? 'rgba(1,181,116,0.12)' : analysis.savings_score >= 4 ? 'rgba(255,181,71,0.12)' : 'rgba(227,26,26,0.12)',
+                      color: analysis.savings_score >= 7 ? '#01B574' : analysis.savings_score >= 4 ? '#FFB547' : '#E31A1A',
+                    }}>
+                      {analysis.savings_score}/10
+                    </span>
+                  )}
+                </div>
+                <div className="vcard-body">
+                  {!analysis ? (
+                    <div style={{ textAlign: 'center', padding: '28px 0' }}>
+                      <div style={{ fontSize: '32px', marginBottom: '10px', opacity: 0.3 }}>✦</div>
+                      <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '13px', marginBottom: '18px', lineHeight: 1.6 }}>
+                        Import a statement, generate a prompt,<br/>paste Claude&apos;s response to see insights.
+                      </p>
+                      <a href="/claude" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '9px 18px', background: 'rgba(67,24,255,0.15)', border: '1px solid rgba(67,24,255,0.3)',
+                        borderRadius: '8px', color: '#868cff', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em', textDecoration: 'none',
+                      }}>✦ GENERATE ANALYSIS</a>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: '16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>SAVINGS SCORE</span>
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: analysis.savings_score >= 7 ? '#01B574' : '#FFB547' }}>{analysis.savings_score}/10</span>
+                        </div>
+                        <div style={{ height: '4px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${analysis.savings_score * 10}%`, background: analysis.savings_score >= 7 ? '#01B574' : analysis.savings_score >= 4 ? '#FFB547' : '#E31A1A', borderRadius: '4px', transition: 'width 1s cubic-bezier(0.16,1,0.3,1)' }}/>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.65, marginBottom: '16px' }}>{analysis.summary}</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {analysis.suggestions.slice(0, 3).map((s, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '11px 13px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(67,24,255,0.15)', border: '1px solid rgba(67,24,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#868cff', flexShrink: 0 }}>{i + 1}</div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: '2px' }}>{s.title}</div>
+                              {s.estimated_saving && <span style={{ fontSize: '10px', color: '#01B574', background: 'rgba(1,181,116,0.1)', padding: '2px 7px', borderRadius: '100px' }}>Save {s.estimated_saving}/mo</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <a href="/claude" style={{ display: 'inline-block', marginTop: '14px', fontSize: '11px', color: '#868cff', textDecoration: 'none', letterSpacing: '0.04em' }}>VIEW FULL ANALYSIS →</a>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Recent transactions */}
+              <div className="vcard">
+                <div className="vcard-head">
+                  <span className="vcard-title">RECENT</span>
+                  <a href="/transactions" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textDecoration: 'none', letterSpacing: '0.04em' }}>ALL →</a>
+                </div>
+                <div className="vcard-body" style={{ paddingTop: '14px' }}>
+                  {recentTx.length === 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: '12px' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '12px' }}>No transactions yet</span>
+                      <a href="/upload" style={{ fontSize: '11px', color: '#868cff', textDecoration: 'none', letterSpacing: '0.04em' }}>IMPORT STATEMENT →</a>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {recentTx.map((t, i) => (
+                        <div key={t.id} style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '9px 0',
+                          borderBottom: i < recentTx.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                          gap: '8px',
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden', flex: 1 }}>
+                            <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', flexShrink: 0 }}>
+                              {getCategoryIcon(t.category)}
+                            </div>
+                            <div style={{ overflow: 'hidden' }}>
+                              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.8)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {t.merchant_clean || t.description}
+                              </div>
+                              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '1px' }}>{t.date.slice(5)}</div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '12px', fontWeight: 600, color: t.debit ? '#E31A1A' : '#01B574', flexShrink: 0 }}>
+                            {t.debit ? `-${formatINRShort(t.debit)}` : `+${formatINRShort(t.credit ?? 0)}`}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   )
 }
 
-function StatCard({ label, value, variant, trend, trendUp, delay, prefix = '', transactions }: {
-  label: string; value: number; variant: 'emerald' | 'rose' | 'gold'; trend?: string; trendUp?: boolean; delay: string; prefix?: string; transactions: number;
+function StatCard({ label, value, color, bg, border, trend, trendUp, sub, prefix = '' }: {
+  label: string; value: number; color: string; bg: string; border: string;
+  trend?: string; trendUp?: boolean; sub: string; prefix?: string;
 }) {
-  const colors = {
-    emerald: { accent: 'var(--emerald)', dim: 'var(--emerald-dim)', border: 'rgba(43,168,106,0.2)' },
-    rose: { accent: 'var(--rose)', dim: 'var(--rose-dim)', border: 'rgba(217,79,79,0.2)' },
-    gold: { accent: 'var(--gold)', dim: 'var(--gold-dim)', border: 'rgba(201,148,63,0.2)' },
-  }[variant]
-
   return (
-    <div className={`stat-card ${variant} animate-in ${delay}`} style={{ ['--glow-color' as string]: colors.dim }}>
-      {/* Top row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-        <span style={{
-          fontFamily: 'var(--font-mono-custom)', fontSize: '9px', fontWeight: 600,
-          letterSpacing: '0.14em', color: 'var(--muted-foreground)',
-        }}>{label}</span>
+    <div className="scard" style={{ background: bg, borderColor: border }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>
+        <span className="scard-label">{label}</span>
         {trend && (
           <span style={{
-            fontFamily: 'var(--font-mono-custom)', fontSize: '10px',
-            color: trendUp ? 'var(--emerald)' : 'var(--rose)',
-            background: trendUp ? 'var(--emerald-dim)' : 'var(--rose-dim)',
-            padding: '2px 7px', borderRadius: '100px',
-          }}>{trendUp ? '↑' : '↓'} {trend}</span>
+            display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: '100px', fontSize: '10px', fontWeight: 600,
+            background: trendUp ? 'rgba(1,181,116,0.12)' : 'rgba(227,26,26,0.12)',
+            color: trendUp ? '#01B574' : '#E31A1A',
+          }}>
+            {trendUp ? '↑' : '↓'} {trend}
+          </span>
         )}
       </div>
-      {/* Value */}
-      <div style={{ marginBottom: '16px' }}>
-        <span style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: 'var(--muted-foreground)', marginRight: '2px' }}>₹</span>
-        <span className="stat-number" style={{ fontSize: '32px', color: colors.accent }}>
-          {prefix}{value.toLocaleString('en-IN')}
-        </span>
+      <div className="scard-value" style={{ color }}>
+        <span className="scard-currency">₹</span>
+        {prefix}{value.toLocaleString('en-IN')}
       </div>
-      {/* Bottom */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ height: '2px', flex: 1, background: 'var(--surface-3)', borderRadius: '2px', marginRight: '12px', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: '60%', background: colors.accent, opacity: 0.5, borderRadius: '2px' }}/>
-        </div>
-        <span style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '10px', color: 'var(--muted-foreground)' }}>
-          {transactions} txns
-        </span>
+      <div className="scard-bar">
+        <div style={{ height: '100%', width: '60%', background: color, opacity: 0.4, borderRadius: '3px' }}/>
       </div>
+      <span className="scard-footer">{sub}</span>
     </div>
   )
 }
