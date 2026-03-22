@@ -97,7 +97,7 @@ export default function DemoPage() {
           {navLinks.map(({ href, label, icon }) => {
             const isActive = label === activeNav
             return (
-              <a key={label} href={href} onClick={() => setActiveNav(label)} className={isActive ? 'nav-item active' : 'nav-item'}>
+              <a key={label} href={href} className={isActive ? 'nav-item active' : 'nav-item'}>
                 <span style={{ color: isActive ? 'var(--gold)' : 'inherit', opacity: isActive ? 1 : 0.55, fontSize: '14px' }}>{icon}</span>
                 <span>{label}</span>
               </a>
