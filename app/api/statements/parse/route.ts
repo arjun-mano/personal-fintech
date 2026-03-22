@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     let textContent: string
     if (fileType === 'pdf') {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require('pdf-parse') as (buffer: Buffer) => Promise<{ text: string }>
+      const pdfParse = require('pdf-parse') as (buffer: Buffer, options?: Record<string, unknown>) => Promise<{ text: string }>
       try {
         const pdfOptions = pdfPassword ? { password: pdfPassword } : {}
         const pdfData = await pdfParse(Buffer.from(fileBuffer), pdfOptions)
