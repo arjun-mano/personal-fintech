@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { parseStatement } from '@/lib/parsers'
 import { categorize } from '@/lib/categorizer'
 import type { Bank } from '@/types'
@@ -7,15 +7,12 @@ import type { Bank } from '@/types'
 export async function POST(request: NextRequest) {
   // Use the bearer token from the Authorization header so RLS context is set correctly
   const token = request.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
-  const supabase = createServerClient(
+  const supabase = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-      cookies: { getAll: () => [], setAll: () => {} },
-    }
+    { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false, autoRefreshToken: false } }
   )
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser(token)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
