@@ -5,17 +5,23 @@ import { categorize } from '@/lib/categorizer'
 import type { Bank } from '@/types'
 
 export async function POST(request: NextRequest) {
-  // Use the bearer token from the Authorization header so RLS context is set correctly
   const token = request.headers.get('Authorization')?.replace('Bearer ', '') ?? ''
-  const supabase = createSupabaseClient(
+
+  // Verify the user's JWT using the anon key client
+  const authClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+    { auth: { persistSession: false, autoRefreshToken: false } }
   )
-  // setSession ensures the JWT is used for ALL requests (including PostgREST/RLS)
-  await supabase.auth.setSession({ access_token: token, refresh_token: '' })
-  const { data: { user } } = await supabase.auth.getUser(token)
+  const { data: { user } } = await authClient.auth.getUser(token)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Use service role key for DB writes — bypasses RLS (safe: user_id always set to user.id)
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } }
+  )
 
   try {
     const formData = await request.formData()
