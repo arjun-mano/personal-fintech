@@ -56,10 +56,12 @@ export function Sidebar() {
 
   return (
     <aside style={{
-      width: '220px',
-      minWidth: '220px',
-      background: 'var(--sidebar)',
-      borderRight: '1px solid var(--border)',
+      width: '230px',
+      minWidth: '230px',
+      background: 'linear-gradient(111.84deg, rgba(6, 11, 38, 0.97) 59.3%, rgba(26, 31, 55, 0.85) 100%)',
+      backdropFilter: 'blur(40px)',
+      WebkitBackdropFilter: 'blur(40px)',
+      borderRight: '1px solid rgba(255,255,255,0.08)',
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
@@ -67,51 +69,56 @@ export function Sidebar() {
       top: 0,
     }}>
       {/* Logo */}
-      <div style={{
-        padding: '20px 16px 18px',
-        borderBottom: '1px solid var(--border)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+      <div style={{ padding: '24px 20px 22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '26px',
-            height: '26px',
-            background: 'var(--gold-dim)',
-            borderRadius: '6px',
+            width: '32px',
+            height: '32px',
+            background: 'linear-gradient(135deg, #4318ff, #868cff)',
+            borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '13px',
-            color: 'var(--gold)',
+            fontSize: '15px',
+            color: '#fff',
+            fontWeight: 700,
+            boxShadow: '0 4px 14px rgba(67, 24, 255, 0.4)',
           }}>₹</div>
-          <span style={{
-            fontSize: '13px',
-            fontWeight: 600,
-            color: 'var(--foreground)',
-          }}>Finance</span>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>Finance</div>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em', marginTop: '1px' }}>Personal</div>
+          </div>
         </div>
       </div>
 
+      {/* Divider */}
+      <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0 20px' }} />
+
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+      <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {links.map(({ href, label, icon }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (
             <Link key={href} href={href} className={active ? 'nav-item active' : 'nav-item'}>
-              <span style={{ color: active ? 'var(--gold)' : 'inherit', opacity: active ? 1 : 0.5 }}>{icon}</span>
+              <span style={{
+                color: active ? '#868cff' : 'rgba(255,255,255,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+              }}>{icon}</span>
               <span>{label}</span>
             </Link>
           )
         })}
       </nav>
 
-      {/* Divider + Sign out */}
-      <div style={{ padding: '12px 10px', borderTop: '1px solid var(--border)' }}>
+      {/* Sign out */}
+      <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <button
           onClick={handleSignOut}
           className="nav-item"
           style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ opacity: 0.5 }}>
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style={{ opacity: 0.45 }}>
             <path d="M9 2H3a1 1 0 00-1 1v9a1 1 0 001 1h6M6 7.5h8M11 5l2.5 2.5L11 10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           <span>Sign Out</span>

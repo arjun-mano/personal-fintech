@@ -77,24 +77,29 @@ export default function DemoPage() {
   const [activeNav] = useState('Overview')
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface-0)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)', position: 'relative' }}>
       {/* ── Sidebar ── */}
-      <aside style={{ width: '210px', minWidth: '210px', background: 'var(--sidebar)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0 }}>
+      <aside style={{ width: '230px', minWidth: '230px', background: 'linear-gradient(111.84deg, rgba(6, 11, 38, 0.97) 59.3%, rgba(26, 31, 55, 0.85) 100%)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', borderRight: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0 }}>
         {/* Logo */}
-        <div style={{ padding: '20px 16px 18px', borderBottom: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-            <div style={{ width: '26px', height: '26px', background: 'var(--gold-dim)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: 'var(--gold)' }}>₹</div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--foreground)' }}>Finance</span>
+        <div style={{ padding: '24px 20px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg, #4318ff, #868cff)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', color: '#fff', fontWeight: 700, boxShadow: '0 4px 14px rgba(67,24,255,0.4)' }}>₹</div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>Finance</div>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em', marginTop: '1px' }}>Personal</div>
+            </div>
           </div>
         </div>
 
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '0 20px' }} />
+
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '1px' }}>
+        <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {navLinks.map(({ href, label, icon }) => {
             const isActive = label === activeNav
             return (
               <a key={label} href={href} className={isActive ? 'nav-item active' : 'nav-item'}>
-                <span style={{ color: isActive ? 'var(--gold)' : 'inherit', opacity: isActive ? 1 : 0.5 }}>{icon}</span>
+                <span style={{ color: isActive ? '#868cff' : 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center' }}>{icon}</span>
                 <span>{label}</span>
               </a>
             )
@@ -102,7 +107,7 @@ export default function DemoPage() {
         </nav>
 
         {/* Sign out */}
-        <div style={{ padding: '10px 8px', borderTop: '1px solid var(--border)' }}>
+        <div style={{ padding: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="nav-item" style={{ cursor: 'default' }}>
             <span style={{ opacity: 0.4 }}>→</span>
             <span>Sign Out</span>
@@ -113,18 +118,18 @@ export default function DemoPage() {
       {/* ── Main ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'auto' }}>
         {/* Header */}
-        <header style={{ padding: '20px 32px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface-1)', position: 'sticky', top: 0, zIndex: 40 }}>
+        <header style={{ padding: '20px 32px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(6,11,38,0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', position: 'sticky', top: 0, zIndex: 40 }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', color: 'var(--foreground)', letterSpacing: '-0.01em' }}>March 2026</div>
-            <div style={{ fontFamily: 'var(--font-mono-custom)', fontSize: '11px', color: 'var(--muted-foreground)', marginTop: '2px', letterSpacing: '0.05em' }}>FINANCIAL OVERVIEW</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>March 2026</div>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginTop: '2px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Financial Overview</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span className="pill pill-emerald">↑ 32% savings rate</span>
-            <select style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--foreground)', borderRadius: '8px', padding: '6px 12px', fontFamily: 'var(--font-mono-custom)', fontSize: '12px', outline: 'none', cursor: 'pointer', colorScheme: 'dark' }}>
+            <select style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: '10px', padding: '6px 12px', fontSize: '12px', outline: 'none', cursor: 'pointer', colorScheme: 'dark' }}>
               <option>March 2026</option>
               <option>February 2026</option>
             </select>
-            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: 'var(--gold-dim)', border: '1px solid rgba(201,148,63,0.3)', borderRadius: '8px', color: 'var(--gold-light)', fontFamily: 'var(--font-mono-custom)', fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', cursor: 'pointer' }}>
+            <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 16px', background: 'linear-gradient(135deg, #4318ff, #868cff)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '11px', fontWeight: 600, letterSpacing: '0.04em', cursor: 'pointer', boxShadow: '0 4px 14px rgba(67,24,255,0.35)' }}>
               ✦ AI ANALYSIS
             </button>
           </div>
