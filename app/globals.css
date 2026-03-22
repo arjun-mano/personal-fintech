@@ -345,6 +345,158 @@ input[type="month"]:focus {
 }
 
 /* ─────────────────────────────────────────────── */
+/* MOBILE SIDEBAR / DRAWER                         */
+/* ─────────────────────────────────────────────── */
+
+/* Desktop: static sidebar */
+.sidebar-panel {
+  width: 230px;
+  min-width: 230px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+}
+
+.sidebar-close-btn { display: none; }
+.sidebar-backdrop  { display: none; }
+.mobile-topbar     { display: none; }
+
+@media (max-width: 768px) {
+  /* Mobile top bar */
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 56px;
+    background: rgba(6, 11, 38, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+  }
+
+  .hamburger-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .hamburger-btn:hover { background: rgba(255,255,255,0.08); }
+
+  /* Sidebar becomes a fixed drawer */
+  .sidebar-panel {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    height: 100vh;
+    z-index: 50;
+    transition: left 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .sidebar-panel.sidebar-panel-open {
+    left: 0;
+  }
+
+  /* Backdrop */
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 49;
+    animation: fadeIn 0.2s ease;
+  }
+
+  /* Close X button inside drawer */
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 30px;
+    height: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s;
+    z-index: 1;
+  }
+  .sidebar-close-btn:hover { background: rgba(255,255,255,0.18); }
+
+  /* Push page content below the fixed top bar */
+  main {
+    padding-top: 56px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────────── */
+/* RESPONSIVE PAGE UTILITIES                       */
+/* ─────────────────────────────────────────────── */
+
+/* Stat cards — 3 cols → 1 col */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .stat-grid { grid-template-columns: 1fr; }
+}
+
+/* Two-column chart row → stacked */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1rem;
+}
+@media (max-width: 900px) {
+  .chart-grid { grid-template-columns: 1fr; }
+}
+
+/* Two-column bottom row → stacked */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .bottom-grid { grid-template-columns: 1fr; }
+}
+
+/* Page padding — tighter on mobile */
+.page-content {
+  padding: 2rem;
+}
+@media (max-width: 640px) {
+  .page-content { padding: 1rem; }
+}
+
+/* ─────────────────────────────────────────────── */
 /* RECHARTS                                        */
 /* ─────────────────────────────────────────────── */
 .recharts-cartesian-grid line { stroke: rgba(255,255,255,0.04); }
