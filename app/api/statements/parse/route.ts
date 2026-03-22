@@ -19,14 +19,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing file or bank' }, { status: 400 })
     }
 
-    const fileName = file.name
-    const fileType = fileName.toLowerCase().endsWith('.pdf') ? 'pdf' : 'csv'
+    const fileName = file.name.toLowerCase()
+    const ext = fileName.split('.').pop() ?? ''
+    const fileType = ext === 'pdf' ? 'pdf' : (ext === 'xls' || ext === 'xlsx') ? 'xls' : 'csv'
     const fileBuffer = await file.arrayBuffer()
     const fileBytes = new Uint8Array(fileBuffer)
 
+    if (!['pdf', 'csv', 'xls', 'txt'].includes(fileType) && ext !== 'xlsx') {
+      return NextResponse.json({ error: 'Unsupported file type. Upload CSV, PDF, TXT, XLS or XLSX.' }, { status: 400 })
+    }
+
     // ── Step 1: Parse file content ────────────────────────────────
     let textContent: string
-    if (fileType === 'pdf') {
+    if (ext === 'pdf') {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const pdfParse = require('pdf-parse') as (buffer: Buffer, options?: Record<string, unknown>) => Promise<{ text: string }>
       try {
@@ -43,12 +48,21 @@ export async function POST(request: NextRequest) {
           { status: 422 }
         )
       }
+    } else if (ext === 'xls' || ext === 'xlsx') {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const XLSX = require('xlsx') as typeof import('xlsx')
+      const workbook = XLSX.read(Buffer.from(fileBuffer), { type: 'buffer' })
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]
+      textContent = XLSX.utils.sheet_to_csv(sheet)
     } else {
+      // csv or txt — both are plain text
       textContent = new TextDecoder('utf-8').decode(fileBytes)
     }
 
     // ── Step 2: Parse transactions (uses a placeholder statement ID for now) ──
-    const enriched = parseStatement(textContent, bank, fileType, 'temp', user.id)
+    // PDF files use pdf parser; everything else (csv/txt/xls/xlsx) uses csv parser
+    const parserFileType = ext === 'pdf' ? 'pdf' : 'csv'
+    const enriched = parseStatement(textContent, bank, parserFileType, 'temp', user.id)
 
     if (enriched.length === 0) {
       return NextResponse.json(

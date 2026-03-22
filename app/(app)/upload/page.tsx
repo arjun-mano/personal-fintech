@@ -75,7 +75,7 @@ export default function UploadPage() {
     <div className="p-6 max-w-2xl">
       <h1 className="text-2xl font-bold mb-1">Upload Bank Statement</h1>
       <p className="text-muted-foreground mb-6">
-        Prefer CSV over PDF for best accuracy. Download from your bank&apos;s Net Banking portal.
+        Download from your bank&apos;s Net Banking portal. CSV or XLS gives best accuracy.
       </p>
 
       <Card>
@@ -109,7 +109,7 @@ export default function UploadPage() {
             <input
               ref={fileRef}
               type="file"
-              accept=".csv,.pdf"
+              accept=".csv,.pdf,.txt,.xls,.xlsx"
               className="hidden"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
@@ -118,14 +118,14 @@ export default function UploadPage() {
                 <p className="font-medium">{file.name}</p>
                 <p className="text-sm text-muted-foreground mt-1">{(file.size / 1024).toFixed(1)} KB</p>
                 <Badge variant="secondary" className="mt-2">
-                  {file.name.endsWith('.pdf') ? 'PDF' : 'CSV'}
+                  {file.name.toLowerCase().split('.').pop()?.toUpperCase() ?? 'FILE'}
                 </Badge>
               </div>
             ) : (
               <div>
                 <p className="text-3xl mb-2">📂</p>
                 <p className="font-medium">Drop file here or click to browse</p>
-                <p className="text-sm text-muted-foreground mt-1">Supports CSV and PDF</p>
+                <p className="text-sm text-muted-foreground mt-1">Supports CSV, PDF, TXT, XLS, XLSX</p>
               </div>
             )}
           </div>
